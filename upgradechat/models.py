@@ -302,17 +302,19 @@ class UpgradeChat(object):
 
     BASE = "https://api.upgrade.chat/v1/{endpoint}"
 
-    def __init__(self, client_id: str, client_secret: str):
+    def __init__(self, client_id: str, client_secret: str, session: aiohttp.ClientSession = None):
         """
         Args:
             client_id (str): A valid client ID from your account.
             client_secret (str): A valid client secret from your account.
+            session (aiohttp.ClientSession, optional): A session to use when making requests.
         """
 
         self.client_id = client_id
         self.client_secret = client_secret
         self._basic_auth_token = b64encode(f"{self.client_id}:{self.client_secret}".encode()).decode()
         self._access_token = None
+        self.session = session or aiohttp.ClientSession()
 
     async def get_access_token(self) -> str:
         """
@@ -344,9 +346,8 @@ class UpgradeChat(object):
 
         # Get the token data
         logger.debug("Requesting Oauth token")
-        async with aiohttp.ClientSession() as session:
-            async with session.post("https://api.upgrade.chat/oauth/token", data=data, headers=headers) as r:
-                data = await r.json()
+        async with self.session.post("https://api.upgrade.chat/oauth/token", data=data, headers=headers) as r:
+            data = await r.json()
 
         # Parse and store
         self._access_token = (data['access_token'], data['refresh_token'], dt.fromtimestamp(int(data['access_token_expires_in']) / 1_000))
@@ -397,13 +398,12 @@ class UpgradeChat(object):
 
         # Send the web request
         logger.debug(f"Sending request to UpgradeChat GET {url} {params}")
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, params=params, headers=headers) as r:
-                logger.info(f"Received response from UpgradeChat GET {r.url} {r.status} {await r.text()}")
-                try:
-                    data = await r.json()
-                except Exception as e:
-                    raise UpgradeChatError() from e
+        async with self.session.get(url, params=params, headers=headers) as r:
+            logger.info(f"Received response from UpgradeChat GET {r.url} {r.status} {await r.text()}")
+            try:
+                data = await r.json()
+            except Exception as e:
+                raise UpgradeChatError() from e
 
         # Deal with our response
         if data.get("data"):
