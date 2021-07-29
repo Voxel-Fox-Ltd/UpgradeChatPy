@@ -329,8 +329,6 @@ class UpgradeChat(object):
         if self._access_token is not None:
             token, refresh, expiry = self._access_token
             if expiry > (dt.utcnow() - timedelta(seconds=30)):
-                pass
-            else:
                 return token
 
         # Set up params
