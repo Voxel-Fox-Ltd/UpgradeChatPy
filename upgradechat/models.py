@@ -152,7 +152,8 @@ class UpgradeChatCoupon(object):
             created: dt,
             duration_in_months: typing.Optional[float] = None,
             amount_off: typing.Optional[float] = None,
-            percent_off: typing.Optional[float] = None):
+            percent_off: typing.Optional[float] = None,
+            **kwargs):
         self.code = code
         self.type = type
         self.duration = duration
@@ -242,7 +243,8 @@ class UpgradeChatProduct(object):
             product_types: typing.List[UpgradeChatProductType],
             created: dt,
             updated: dt,
-            deleted: typing.Optional[dt] = None):
+            deleted: typing.Optional[dt] = None,
+            **kwargs):
         self.uuid = uuid
         self.checkout_uri = checkout_uri
         self.name = name
@@ -334,7 +336,8 @@ class UpgradeChatOrderItem(object):
             product_types: typing.List[UpgradeChatProductType],
             payment_processor: UpgradeChatPaymentProcessor,
             payment_processor_record_id: str,
-            product_uuid: typing.Optional[str] = None):
+            product_uuid: typing.Optional[str] = None,
+            **kwargs):
         self.price = price
         self.quantity = quantity
         self.interval = interval
@@ -431,7 +434,8 @@ class UpgradeChatOrder(object):
             payment_processor: typing.Optional[UpgradeChatPaymentProcessor] = None,
             payment_processor_record_id: typing.Optional[str] = None,
             coupon_code: typing.Optional[str] = None,
-            coupon: typing.Optional[UpgradeChatCoupon] = None):
+            coupon: typing.Optional[UpgradeChatCoupon] = None,
+            **kwargs):
         self.uuid = uuid
         self.purchased_at = purchased_at
         self.payment_processor = payment_processor
