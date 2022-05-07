@@ -472,10 +472,10 @@ class UpgradeChatOrder(object):
             extras["cancelled_at"] = dt.strptime(data.pop("cancelled_at"), "%Y-%m-%dT%H:%M:%S.%fZ")
         if data.get("deleted"):
             extras["deleted"] = dt.strptime(data.pop("deleted"), "%Y-%m-%dT%H:%M:%S.%fZ")
-        if data.get("created"):
-            extras["created"] = dt.strptime(data.pop("created"), "%Y-%m-%dT%H:%M:%S.%fZ")
-        if data.get("updated"):
-            extras["updated"] = dt.strptime(data.pop("updated"), "%Y-%m-%dT%H:%M:%S.%fZ")
+        # if data.get("created"):
+        #     extras["created"] = dt.strptime(data.pop("created"), "%Y-%m-%dT%H:%M:%S.%fZ")
+        # if data.get("updated"):
+        #     extras["updated"] = dt.strptime(data.pop("updated"), "%Y-%m-%dT%H:%M:%S.%fZ")
         return cls(
             **{i: o for i, o in data.items() if i in cls.__slots__},
             **extras,
