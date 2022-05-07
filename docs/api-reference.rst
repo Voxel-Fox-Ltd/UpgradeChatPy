@@ -18,6 +18,25 @@ UpgradeChatUser
 .. autoclass:: upgradechat.UpgradeChatUser
    :exclude-members: __init__
 
+UpgradeChatCouponType
+-----------------------------------------------------------
+
+.. autoclass:: upgradechat.UpgradeChatCouponType
+   :exclude-members: __init__
+
+UpgradeChatCouponDuration
+-----------------------------------------------------------
+
+.. autoclass:: upgradechat.UpgradeChatCouponDuration
+   :exclude-members: __init__
+
+UpgradeChatCoupon
+-----------------------------------------------------------
+
+.. autoclass:: upgradechat.UpgradeChatCoupon
+   :exclude-members: __init__
+
+
 UpgradeChatOrderItem
 -----------------------------------------------------------
 

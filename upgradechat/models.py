@@ -70,6 +70,34 @@ class UpgradeChatPaymentProcessor(enum.Enum):
     STRIPE = enum.auto()
 
 
+class UpgradeChatCouponType(enum.Enum):
+    """
+    An enum for the different types of supported coupon.
+
+    Attributes:
+        value
+        percentage
+    """
+
+    value = enum.auto()
+    percentage = enum.auto()
+
+
+class UpgradeChatCouponDuration(enum.Enum):
+    """
+    An enum for the different supported durations of coupon discounts.
+
+    Attributes:
+        once
+        repeating
+        forever
+    """
+
+    once = enum.auto()
+    repeating = enum.auto()
+    forever = enum.auto()
+
+
 class UpgradeChatUser(object):
     """
     A user object from the UpgradeChat API.
@@ -79,12 +107,67 @@ class UpgradeChatUser(object):
         username (str): The uername of the user.
     """
 
+    __slots__ = (
+        "discord_id",
+        "username",
+    )
+
     def __init__(self, discord_id: str, username: str):
         self.discord_id: int = int(discord_id)
         self.username: str = username
 
     def __repr__(self):
         return self.username
+
+
+class UpgradeChatCoupon(object):
+    """
+    A user object from the UpgradeChat API.
+
+    Attributes:
+        code (str): The coupon code.
+        type (UpgradeChatCouponType): The type of discount that the coupon applies.
+        duration (UpgradeChatCouponDuration): The duration of the coupon's discount.
+        duration_in_months (float): The discount as a number for the discount time.
+        amount_off (float): The amount that this coupon gives off.
+        percent_off (float): The percentage that this coupon gives off.
+        created (datetime.datetime): The time that the coupon was created.
+    """
+
+    __slots__ = (
+        "code",
+        "type",
+        "duration",
+        "duration_in_months",
+        "amount_off",
+        "percent_off",
+        "created",
+    )
+
+    def __init__(
+            self,
+            code: str,
+            type: UpgradeChatCouponType,
+            duration: UpgradeChatCouponDuration,
+            created: dt,
+            duration_in_months: typing.Optional[float] = None,
+            amount_off: typing.Optional[float] = None,
+            percent_off: typing.Optional[float] = None):
+        self.code = code
+        self.type = type
+        self.duration = duration
+        self.duration_in_months = duration_in_months
+        self.amount_off = amount_off
+        self.percent_off = percent_off
+        self.created = created
+
+    @classmethod
+    def from_api(cls, data):
+        extras = {}
+        extras["created"] = dt.strptime(data.pop("created"), "%Y-%m-%dT%H:%M:%S.%fZ")
+        extras["type"] = UpgradeChatCouponType[data.pop("type")]
+        extras["duration"] = UpgradeChatCouponDuration[data.pop("duration")]
+        return cls(**data, **extras)
 
 
 class UpgradeChatProduct(object):
@@ -115,14 +198,51 @@ class UpgradeChatProduct(object):
         deleted (datetime.datetime, optional): When this product was deleted.
     """
 
+    __slots__ = (
+        "uuid",
+        "checkout_uri",
+        "name",
+        "account_id",
+        "price",
+        "interval",
+        "interval_count",
+        "free_trial_length",
+        "description",
+        "image_link",
+        "variable_price",
+        "is_time_limited",
+        "limited_inventory",
+        "available_stock",
+        "shippable",
+        "paymentless_trial",
+        "product_types",
+        "created",
+        "updated",
+        "deleted",
+    )
+
     def __init__(
-            self, uuid: str, checkout_uri: str, name: str, account_id: int,
-            price: float, interval: UpgradeChatInterval, interval_count: int,
-            free_trial_length: int, description: str, image_link: str, variable_price: bool,
-            is_time_limited: bool, limited_inventory: bool,
-            available_stock: int, shippable: bool, paymentless_trial: bool,
+            self,
+            uuid: str,
+            checkout_uri: str,
+            name: str,
+            account_id: int,
+            price: float,
+            interval: UpgradeChatInterval,
+            interval_count: int,
+            free_trial_length: int,
+            description: str,
+            image_link: str,
+            variable_price: bool,
+            is_time_limited: bool,
+            limited_inventory: bool,
+            available_stock: int,
+            shippable: bool,
+            paymentless_trial: bool,
             product_types: typing.List[UpgradeChatProductType],
-            created: dt, updated: dt, deleted: dt = None):
+            created: dt,
+            updated: dt,
+            deleted: typing.Optional[dt] = None):
         self.uuid = uuid
         self.checkout_uri = checkout_uri
         self.name = name
@@ -159,7 +279,10 @@ class UpgradeChatProduct(object):
             extras["updated"] = dt.strptime(data.pop("updated"), "%Y-%m-%dT%H:%M:%S.%fZ")
         if data.get("deleted"):
             extras["deleted"] = dt.strptime(data.pop("deleted"), "%Y-%m-%dT%H:%M:%S.%fZ")
-        return cls(**extras, **data)
+        return cls(
+            **{i: o for i, o in data.items() if i in cls.__slots__},
+            **extras,
+        )
 
 
 class UpgradeChatOrderItem(object):
@@ -179,6 +302,24 @@ class UpgradeChatOrderItem(object):
         payment_processor (UpgradeChatPaymentProcessor): The payment processor used to purchase this item.
         payment_processor_record_id (str): The record ID that the payment processor used for this purchase.
     """
+
+    __slots__ = (
+        "price",
+        "quantity",
+        "interval",
+        "interval_count",
+        "free_trial_length",
+        "is_time_limited",
+        "discord_roles",
+        "product_types",
+        "payment_processor_record_id",
+        "payment_processor",
+        "product",
+
+        # Not included in API output
+        "product_name",
+        "product_uuid",
+    )
 
     def __init__(
             self,
@@ -223,7 +364,10 @@ class UpgradeChatOrderItem(object):
             extras["interval"] = UpgradeChatInterval[data.pop("interval")]
         extras["product_types"] = [UpgradeChatProductType[i] for i in data.pop("product_types")]
         extras["payment_processor"] = UpgradeChatPaymentProcessor[data.pop("payment_processor")]
-        return cls(**data, **extras)
+        return cls(
+            **{i: o for i, o in data.items() if i in cls.__slots__},
+            **extras,
+        )
 
 
 class UpgradeChatOrder(object):
@@ -232,18 +376,16 @@ class UpgradeChatOrder(object):
 
     Attributes:
         uuid (str): The UUID of the order
-        id (str): The ID of the order.
         purchased_at (datetime.datetime): A timestamp of when the order was placed.
         user (UpgradeChatUser): The user who placed the order.
         subtotal (float): A subtotal of the items at checkout.
         discount (float): The discount applied to the items.
         total (float): The total that the user paid.
+        coupon_code (string): The coupon code that was used with the order, if any.
         type (UpgradeChatItemType): The type of item that was ordered.
         is_subscription (bool): Whether or not the order was a subscription.
         cancelled_at (datetime.datetime): The time when the order was cancelled
         order_items (typing.List[UpgradeChatOrderItem]): A list of items that were included in the order.
-        created (datetime.datetime): When the order was created.
-        updated (datetime.datetime): When the order was last updated.
         deleted (datetime.datetime, optional): When the order was deleted.
         payment_processor (UpgradeChatPaymentProcessor, optional): The payment processor for the order.
         payment_processor_record_id (str, optional): The record ID that the payment processor used.
@@ -251,10 +393,31 @@ class UpgradeChatOrder(object):
         order_item_uuids (typing.List[str]): A list of item UUIDs that were ordered.
     """
 
+    __slots__ = (
+        "uuid",
+        "purchased_at",
+        "payment_processor",
+        "payment_processor_record_id",
+        "user",
+        "subtotal",
+        "discount",
+        "total",
+        "type",
+        "is_subscription",
+        "cancelled_at",
+        "deleted",
+        "order_items",
+        "coupon_code",
+        "coupon",
+
+        # Not included in API output
+        "order_item_names",
+        "order_item_uuids",
+    )
+
     def __init__(
             self,
             uuid: str,
-            id: str,
             purchased_at: dt,
             user: UpgradeChatUser,
             subtotal: float,
@@ -264,13 +427,12 @@ class UpgradeChatOrder(object):
             is_subscription: bool,
             cancelled_at: dt,
             order_items: typing.List[UpgradeChatOrderItem],
-            created: dt,
-            updated: dt,
-            deleted: dt = None,
-            payment_processor: UpgradeChatPaymentProcessor = None,
-            payment_processor_record_id: str = None):
+            deleted: typing.Optional[dt] = None,
+            payment_processor: typing.Optional[UpgradeChatPaymentProcessor] = None,
+            payment_processor_record_id: typing.Optional[str] = None,
+            coupon_code: typing.Optional[str] = None,
+            coupon: typing.Optional[UpgradeChatCoupon] = None):
         self.uuid = uuid
-        self.id = id
         self.purchased_at = purchased_at
         self.payment_processor = payment_processor
         self.payment_processor_record_id = payment_processor_record_id
@@ -282,8 +444,8 @@ class UpgradeChatOrder(object):
         self.is_subscription = is_subscription
         self.cancelled_at = cancelled_at
         self.deleted = deleted
-        self.created = created
-        self.updated = updated
+        self.coupon_code = coupon_code
+        self.coupon = coupon
 
         self.order_items = order_items
         self.order_item_names = [i.product_name for i in self.order_items]
@@ -300,6 +462,8 @@ class UpgradeChatOrder(object):
 
         extras = {}
         extras["user"] = UpgradeChatUser(**data.pop("user"))
+        if data.get("coupon"):
+            extras["coupon"] = UpgradeChatCoupon(**data.pop("coupon"))
         extras["payment_processor"] = UpgradeChatPaymentProcessor[data.pop("payment_processor")]
         extras["type"] = UpgradeChatItemType[data.pop("type")]
         extras["order_items"] = [UpgradeChatOrderItem.from_api(i) for i in data.pop("order_items", list())]
@@ -312,7 +476,10 @@ class UpgradeChatOrder(object):
             extras["created"] = dt.strptime(data.pop("created"), "%Y-%m-%dT%H:%M:%S.%fZ")
         if data.get("updated"):
             extras["updated"] = dt.strptime(data.pop("updated"), "%Y-%m-%dT%H:%M:%S.%fZ")
-        return cls(**data, **extras)
+        return cls(
+            **{i: o for i, o in data.items() if i in cls.__slots__},
+            **extras,
+        )
 
 
 class UpgradeChat(object):
