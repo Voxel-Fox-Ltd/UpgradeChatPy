@@ -181,11 +181,19 @@ class UpgradeChatOrderItem(object):
     """
 
     def __init__(
-            self, price: float, quantity: int, interval: UpgradeChatInterval,
-            interval_count: int, free_trial_length: int, is_time_limited: bool,
-            product: dict, discord_roles: typing.List[dict],
+            self,
+            price: float,
+            quantity: int,
+            interval: UpgradeChatInterval,
+            interval_count: int,
+            free_trial_length: int,
+            is_time_limited: bool,
+            product: dict,
+            discord_roles: typing.List[dict],
             product_types: typing.List[UpgradeChatProductType],
-            payment_processor: UpgradeChatPaymentProcessor, payment_processor_record_id: str):
+            payment_processor: UpgradeChatPaymentProcessor,
+            payment_processor_record_id: str,
+            product_uuid: typing.Optional[str] = None):
         self.price = price
         self.quantity = quantity
         self.interval = interval
@@ -244,10 +252,22 @@ class UpgradeChatOrder(object):
     """
 
     def __init__(
-            self, uuid: str, id: str, purchased_at: dt, user: UpgradeChatUser,
-            subtotal: float, discount: float, total: float, type: UpgradeChatItemType,
-            is_subscription: bool, cancelled_at: dt, order_items: typing.List[UpgradeChatOrderItem],
-            created: dt, updated: dt, deleted: dt = None, payment_processor: UpgradeChatPaymentProcessor = None,
+            self,
+            uuid: str,
+            id: str,
+            purchased_at: dt,
+            user: UpgradeChatUser,
+            subtotal: float,
+            discount: float,
+            total: float,
+            type: UpgradeChatItemType,
+            is_subscription: bool,
+            cancelled_at: dt,
+            order_items: typing.List[UpgradeChatOrderItem],
+            created: dt,
+            updated: dt,
+            deleted: dt = None,
+            payment_processor: UpgradeChatPaymentProcessor = None,
             payment_processor_record_id: str = None):
         self.uuid = uuid
         self.id = id
